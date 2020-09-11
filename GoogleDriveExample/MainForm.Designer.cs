@@ -33,6 +33,14 @@
             this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.tsmNewFolder = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmUpload = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmCut = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmCopy = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmPaste = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmDownload = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmDelete = new System.Windows.Forms.ToolStripMenuItem();
             this.imgLargeList = new System.Windows.Forms.ImageList(this.components);
             this.imgSmallList = new System.Windows.Forms.ImageList(this.components);
             this.txtFileName = new System.Windows.Forms.TextBox();
@@ -51,14 +59,8 @@
             this.cbDateActive = new System.Windows.Forms.CheckBox();
             this.cmbViewMode = new System.Windows.Forms.ComboBox();
             this.txtNavigation = new System.Windows.Forms.TextBox();
-            this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.tsmNewFolder = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmCut = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmUpload = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmCopy = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmPaste = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmDownload = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmDelete = new System.Windows.Forms.ToolStripMenuItem();
+            this.lblFileCount = new System.Windows.Forms.Label();
+            this.lblSelectedCount = new System.Windows.Forms.Label();
             this.contextMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -93,13 +95,13 @@
             this.listFiles.LabelEdit = true;
             this.listFiles.LargeImageList = this.imgLargeList;
             this.listFiles.Location = new System.Drawing.Point(27, 133);
-            this.listFiles.MultiSelect = false;
             this.listFiles.Name = "listFiles";
-            this.listFiles.Size = new System.Drawing.Size(968, 324);
+            this.listFiles.Size = new System.Drawing.Size(968, 354);
             this.listFiles.SmallImageList = this.imgSmallList;
             this.listFiles.TabIndex = 1;
             this.listFiles.UseCompatibleStateImageBehavior = false;
             this.listFiles.AfterLabelEdit += new System.Windows.Forms.LabelEditEventHandler(this.listFiles_AfterLabelEdit);
+            this.listFiles.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.listFiles_ItemSelectionChanged);
             this.listFiles.DragDrop += new System.Windows.Forms.DragEventHandler(this.listFiles_DragDrop);
             this.listFiles.DragEnter += new System.Windows.Forms.DragEventHandler(this.listFiles_DragEnter);
             this.listFiles.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listFiles_MouseDoubleClick);
@@ -133,6 +135,69 @@
             // 
             this.columnHeader1.Text = "File ID";
             this.columnHeader1.Width = 160;
+            // 
+            // contextMenu
+            // 
+            this.contextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tsmNewFolder,
+            this.tsmUpload,
+            this.tsmCut,
+            this.tsmCopy,
+            this.tsmPaste,
+            this.tsmDownload,
+            this.tsmDelete});
+            this.contextMenu.Name = "contextMenu";
+            this.contextMenu.Size = new System.Drawing.Size(139, 158);
+            this.contextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenu_Opening);
+            // 
+            // tsmNewFolder
+            // 
+            this.tsmNewFolder.Name = "tsmNewFolder";
+            this.tsmNewFolder.Size = new System.Drawing.Size(138, 22);
+            this.tsmNewFolder.Text = "Yeni Klasör";
+            this.tsmNewFolder.Click += new System.EventHandler(this.tsmNewFolder_Click);
+            // 
+            // tsmUpload
+            // 
+            this.tsmUpload.Name = "tsmUpload";
+            this.tsmUpload.Size = new System.Drawing.Size(138, 22);
+            this.tsmUpload.Text = "Dosya Yükle";
+            this.tsmUpload.Click += new System.EventHandler(this.tsmUpload_Click);
+            // 
+            // tsmCut
+            // 
+            this.tsmCut.Name = "tsmCut";
+            this.tsmCut.Size = new System.Drawing.Size(138, 22);
+            this.tsmCut.Text = "Kes";
+            this.tsmCut.Click += new System.EventHandler(this.tsmCut_Click);
+            // 
+            // tsmCopy
+            // 
+            this.tsmCopy.Name = "tsmCopy";
+            this.tsmCopy.Size = new System.Drawing.Size(138, 22);
+            this.tsmCopy.Text = "Kopyala";
+            this.tsmCopy.Click += new System.EventHandler(this.tsmCopy_Click);
+            // 
+            // tsmPaste
+            // 
+            this.tsmPaste.Name = "tsmPaste";
+            this.tsmPaste.Size = new System.Drawing.Size(138, 22);
+            this.tsmPaste.Text = "Yapıştır";
+            this.tsmPaste.Click += new System.EventHandler(this.tsmPaste_Click);
+            // 
+            // tsmDownload
+            // 
+            this.tsmDownload.Name = "tsmDownload";
+            this.tsmDownload.Size = new System.Drawing.Size(138, 22);
+            this.tsmDownload.Text = "İndir";
+            this.tsmDownload.Click += new System.EventHandler(this.tsmDownload_Click);
+            // 
+            // tsmDelete
+            // 
+            this.tsmDelete.Name = "tsmDelete";
+            this.tsmDelete.Size = new System.Drawing.Size(138, 22);
+            this.tsmDelete.Text = "Sil";
+            this.tsmDelete.Click += new System.EventHandler(this.tsmDelete_Click);
             // 
             // imgLargeList
             // 
@@ -233,7 +298,7 @@
             // 
             this.pbarStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.pbarStatus.Location = new System.Drawing.Point(27, 463);
+            this.pbarStatus.Location = new System.Drawing.Point(27, 513);
             this.pbarStatus.Name = "pbarStatus";
             this.pbarStatus.Size = new System.Drawing.Size(968, 23);
             this.pbarStatus.TabIndex = 16;
@@ -242,7 +307,7 @@
             // 
             this.lblStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblStatus.AutoSize = true;
-            this.lblStatus.Location = new System.Drawing.Point(24, 489);
+            this.lblStatus.Location = new System.Drawing.Point(24, 539);
             this.lblStatus.Name = "lblStatus";
             this.lblStatus.Size = new System.Drawing.Size(21, 13);
             this.lblStatus.TabIndex = 17;
@@ -306,75 +371,32 @@
             this.txtNavigation.TabIndex = 25;
             this.txtNavigation.Text = "Root";
             // 
-            // contextMenu
+            // lblFileCount
             // 
-            this.contextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tsmNewFolder,
-            this.tsmUpload,
-            this.tsmCut,
-            this.tsmCopy,
-            this.tsmPaste,
-            this.tsmDownload,
-            this.tsmDelete});
-            this.contextMenu.Name = "contextMenu";
-            this.contextMenu.Size = new System.Drawing.Size(139, 158);
-            this.contextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenu_Opening);
+            this.lblFileCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lblFileCount.AutoSize = true;
+            this.lblFileCount.Location = new System.Drawing.Point(24, 490);
+            this.lblFileCount.Name = "lblFileCount";
+            this.lblFileCount.Size = new System.Drawing.Size(0, 13);
+            this.lblFileCount.TabIndex = 26;
             // 
-            // tsmNewFolder
+            // lblSelectedCount
             // 
-            this.tsmNewFolder.Name = "tsmNewFolder";
-            this.tsmNewFolder.Size = new System.Drawing.Size(138, 22);
-            this.tsmNewFolder.Text = "Yeni Klasör";
-            this.tsmNewFolder.Click += new System.EventHandler(this.tsmNewFolder_Click);
+            this.lblSelectedCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lblSelectedCount.AutoSize = true;
+            this.lblSelectedCount.Location = new System.Drawing.Point(915, 490);
+            this.lblSelectedCount.Name = "lblSelectedCount";
+            this.lblSelectedCount.Size = new System.Drawing.Size(0, 13);
+            this.lblSelectedCount.TabIndex = 27;
             // 
-            // tsmCut
-            // 
-            this.tsmCut.Name = "tsmCut";
-            this.tsmCut.Size = new System.Drawing.Size(138, 22);
-            this.tsmCut.Text = "Kes";
-            this.tsmCut.Click += new System.EventHandler(this.tsmCut_Click);
-            // 
-            // tsmUpload
-            // 
-            this.tsmUpload.Name = "tsmUpload";
-            this.tsmUpload.Size = new System.Drawing.Size(138, 22);
-            this.tsmUpload.Text = "Dosya Yükle";
-            this.tsmUpload.Click += new System.EventHandler(this.tsmUpload_Click);
-            // 
-            // tsmCopy
-            // 
-            this.tsmCopy.Name = "tsmCopy";
-            this.tsmCopy.Size = new System.Drawing.Size(138, 22);
-            this.tsmCopy.Text = "Kopyala";
-            this.tsmCopy.Click += new System.EventHandler(this.tsmCopy_Click);
-            // 
-            // tsmPaste
-            // 
-            this.tsmPaste.Name = "tsmPaste";
-            this.tsmPaste.Size = new System.Drawing.Size(138, 22);
-            this.tsmPaste.Text = "Yapıştır";
-            this.tsmPaste.Click += new System.EventHandler(this.tsmPaste_Click);
-            // 
-            // tsmDownload
-            // 
-            this.tsmDownload.Name = "tsmDownload";
-            this.tsmDownload.Size = new System.Drawing.Size(138, 22);
-            this.tsmDownload.Text = "İndir";
-            this.tsmDownload.Click += new System.EventHandler(this.tsmDownload_Click);
-            // 
-            // tsmDelete
-            // 
-            this.tsmDelete.Name = "tsmDelete";
-            this.tsmDelete.Size = new System.Drawing.Size(138, 22);
-            this.tsmDelete.Text = "Sil";
-            this.tsmDelete.Click += new System.EventHandler(this.tsmDelete_Click);
-            // 
-            // Form1
+            // MainForm
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1024, 529);
+            this.ClientSize = new System.Drawing.Size(1024, 559);
+            this.Controls.Add(this.lblSelectedCount);
+            this.Controls.Add(this.lblFileCount);
             this.Controls.Add(this.txtNavigation);
             this.Controls.Add(this.cmbViewMode);
             this.Controls.Add(this.cbDateActive);
@@ -393,7 +415,7 @@
             this.Controls.Add(this.txtFileName);
             this.Controls.Add(this.listFiles);
             this.Controls.Add(this.btnAuthorize);
-            this.Name = "Form1";
+            this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Google Drive API Using";
             this.Load += new System.EventHandler(this.MainForm_Load);
@@ -439,6 +461,8 @@
         private System.Windows.Forms.ToolStripMenuItem tsmPaste;
         private System.Windows.Forms.ToolStripMenuItem tsmDownload;
         private System.Windows.Forms.ToolStripMenuItem tsmDelete;
+        private System.Windows.Forms.Label lblFileCount;
+        private System.Windows.Forms.Label lblSelectedCount;
     }
 }
 

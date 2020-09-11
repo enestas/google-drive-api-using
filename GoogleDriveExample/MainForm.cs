@@ -25,10 +25,8 @@ namespace GoogleDriveExample {
 
         private GoogleDriveAPI DriveApi;
 
-        /// <summary>
-        /// Kes, kopyala işlemleri için dosya ID ve ismi
-        /// </summary>
-        private string CopyFileID, CutFileID, SelectedFileName;
+        private readonly List<Tuple<string, string>> SelectedFiles = new List<Tuple<string, string>>();
+        private bool CopyingIsActive = false, CuttingIsActive = false;
 
         /// <summary>
         /// Son execute edilen query 
@@ -85,11 +83,37 @@ namespace GoogleDriveExample {
         /// verilen query'e göre dosya listeler
         /// </summary>
         /// <param name="query">query</param>
-        private void GetList(string query) {
+        private async void GetList(string query) {
             LastQuery = query;
 
-            List<Google.Apis.Drive.v3.Data.File> files = DriveApi.GetFiles(query);
-            FillListView(files);
+            //List<Google.Apis.Drive.v3.Data.File> files = DriveApi.GetFiles(query);
+
+            listFiles.Items.Clear();
+            lblSelectedCount.Text = "";
+
+            await foreach (var item in DriveApi.GetFilesAsync(query)) {
+                btnPrev.Enabled = !DriveApi.Running;
+                btnSearch.Enabled = btnPrev.Enabled;
+                long fileSize = item.Size ?? 0;
+                string[] row = { item.Name, (fileSize / 1024f).ToString("n0") + " KB", fileSize.ToString(), item.MimeType, item.CreatedTime.Value.ToString("G"), item.Id };
+
+                ListViewItem lvi = new ListViewItem(row);
+
+                if (item.MimeType.Contains("folder")) {
+                    lvi.ImageIndex = 0;
+                }
+                else {
+                    lvi.ImageIndex = 1;
+                }
+
+                listFiles.Items.Add(lvi);
+
+                lblFileCount.Text = "Dosya sayısı: " + listFiles.Items.Count.ToString();
+            }
+
+            btnPrev.Enabled = !DriveApi.Running;
+            btnSearch.Enabled = btnPrev.Enabled;
+            //FillListView(files);
         }
 
         /// <summary>
@@ -114,6 +138,7 @@ namespace GoogleDriveExample {
                 }
 
                 listFiles.Items.Add(lvi);
+                lblFileCount.Text = "File count: " + listFiles.Items.Count.ToString();
             }
         }
 
@@ -319,7 +344,7 @@ namespace GoogleDriveExample {
 
                 tsmNewFolder.Visible = true;
                 tsmUpload.Visible = true;
-                tsmPaste.Visible = !string.IsNullOrEmpty(CutFileID) || !string.IsNullOrEmpty(CopyFileID);
+                tsmPaste.Visible = SelectedFiles.Count > 0 && (CopyingIsActive || CuttingIsActive);
             }
             else {
                 // seçilen bir dosya varsa yeni klasör, yapıştır ve yükle butonları gizlenir
@@ -429,9 +454,10 @@ namespace GoogleDriveExample {
                 return;
             }
 
-            CutFileID = listFiles.SelectedItems[0].SubItems[5].Text;
-            SelectedFileName = listFiles.SelectedItems[0].SubItems[0].Text;
-            CopyFileID = null;
+            CopyingIsActive = false;
+            CuttingIsActive = true;
+
+            RefreshSelectedFiles();
         }
 
         /// <summary>
@@ -444,44 +470,61 @@ namespace GoogleDriveExample {
                 return;
             }
 
-            CopyFileID = listFiles.SelectedItems[0].SubItems[5].Text;
-            SelectedFileName = listFiles.SelectedItems[0].SubItems[0].Text;
-            CutFileID = null;
+            CopyingIsActive = true;
+            CuttingIsActive = false;
+
+            RefreshSelectedFiles();
+        }
+
+        private void RefreshSelectedFiles() {
+            SelectedFiles.Clear();
+
+            foreach (ListViewItem lvi in listFiles.SelectedItems) {
+                string fileId = lvi.SubItems[5].Text;
+                string fileName = lvi.SubItems[0].Text;
+
+                SelectedFiles.Add(new Tuple<string, string>(fileId, fileName));
+            }
         }
 
         /// <summary>
-        /// kes ya da kopyala yapılan dosya varsa aktif klasöre yapıştırır
+        /// kes ya da kopyala yapılan dosyalar varsa aktif klasöre yapıştırır
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private async void tsmPaste_Click(object sender, EventArgs e) {
-            bool b = !string.IsNullOrEmpty(CutFileID) || !string.IsNullOrEmpty(CopyFileID);
+            bool b = (SelectedFiles.Count > 0);
 
             if (!b) {
                 return;
             }
-            Google.Apis.Drive.v3.Data.File file;
-            if (!string.IsNullOrEmpty(CopyFileID)) {
-                file = await DriveApi.Copy(CopyFileID, SelectedFileName, ActiveParentID);
+
+            Google.Apis.Drive.v3.Data.File file = null;
+            foreach (var currentFile in SelectedFiles) {
+                if (CopyingIsActive) {
+                    file = await DriveApi.Copy(currentFile.Item1, currentFile.Item2, ActiveParentID);
+                }
+                else if (CuttingIsActive) {
+                    file = await DriveApi.Move(currentFile.Item1, ActiveParentID);
+                }
+
+                long fileSize = file.Size ?? 0;
+                string[] row = { file.Name, (fileSize / 1024f).ToString("n0") + " KB", fileSize.ToString(), file.MimeType, file.CreatedTime?.ToString("G"), file.Id };
+
+                ListViewItem lvi = new ListViewItem(row) {
+                    ImageIndex = 1
+                };
+                listFiles.Items.Add(lvi);
             }
-            else {
-                file = await DriveApi.Move(CutFileID, ActiveParentID);
-            }
 
-            long fileSize = file.Size ?? 0;
-            string[] row = { file.Name, (fileSize / 1024f).ToString("n0") + " KB", fileSize.ToString(), file.MimeType, file.CreatedTime?.ToString("G"), file.Id };
+            CopyingIsActive = false;
+            CuttingIsActive = false;
 
-            ListViewItem lvi = new ListViewItem(row) {
-                ImageIndex = 1
-            };
-            listFiles.Items.Add(lvi);
-
-            CopyFileID = null;
-            CutFileID = null;
+            SelectedFiles.Clear();
         }
 
         /// <summary>
-        /// seçilen dosyayı indirir
+        /// seçilen dosyaları indirir
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -498,49 +541,57 @@ namespace GoogleDriveExample {
 
             string folderPath = folderDialog.SelectedPath;
 
-            ListViewItem lvi = listFiles.SelectedItems[0];
-
-            string mimeType = lvi.SubItems[3].Text;
-            string fileId = lvi.SubItems[5].Text;
-            string fileName = lvi.SubItems[0].Text;
-            long fileSize = long.Parse(lvi.SubItems[2].Text);
-
-            if (fileSize == 0) {
-                return;
-            }
-
             pbarStatus.Visible = true;
             lblStatus.Visible = true;
 
             tsmDownload.Enabled = false;
             tsmUpload.Enabled = false;
-            DriveApi.SetProgressValue += SetProgressValue;
 
-            using (var stream = await DriveApi.DownloadFile(fileId, fileSize)) {
-                stream.Position = 0;
-                stream.Seek(0, SeekOrigin.Begin);
+            int c = 0;
 
-                using (FileStream fs = new FileStream(folderPath + "\\" + fileName, FileMode.Create, FileAccess.Write)) {
-                    stream.CopyTo(fs);
+            try {
+                DriveApi.SetProgressValue += SetProgressValue;
+
+                foreach (ListViewItem lvi in listFiles.SelectedItems) {
+                    string mimeType = lvi.SubItems[3].Text;
+                    string fileId = lvi.SubItems[5].Text;
+                    string fileName = lvi.SubItems[0].Text;
+                    long fileSize = long.Parse(lvi.SubItems[2].Text);
+
+                    if (fileSize == 0) {
+                        continue;
+                    }
+
+                    using (var stream = await DriveApi.DownloadFile(fileId, fileSize)) {
+                        stream.Position = 0;
+                        stream.Seek(0, SeekOrigin.Begin);
+
+                        using (FileStream fs = new FileStream(folderPath + "\\" + fileName, FileMode.Create, FileAccess.Write)) {
+                            stream.CopyTo(fs);
+                            c++;
+                        }
+                    }
+
                 }
             }
+            finally {
+                DriveApi.SetProgressValue -= SetProgressValue;
 
-            DriveApi.SetProgressValue -= SetProgressValue;
+                tsmDownload.Enabled = true;
+                tsmUpload.Enabled = true;
 
-            MessageBox.Show("Dosya indirildi");
-            tsmDownload.Enabled = true;
-            tsmUpload.Enabled = true;
+                pbarStatus.Value = 0;
+                lblStatus.Text = "";
 
-            pbarStatus.Value = 0;
-            lblStatus.Text = "";
+                pbarStatus.Visible = false;
+                lblStatus.Visible = false;
 
-
-            pbarStatus.Visible = false;
-            lblStatus.Visible = false;
+                MessageBox.Show($"{c} adet dosya indirildi");
+            }
         }
 
         /// <summary>
-        /// seçilen dosyayı siler
+        /// seçilen dosyaları siler
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -553,16 +604,31 @@ namespace GoogleDriveExample {
                 return;
             }
 
-            ListViewItem lvi = listFiles.SelectedItems[0];
-            string fileId = lvi.SubItems[5].Text;
+            int c = 0;
 
-            tsmDelete.Enabled = false;
-            await DriveApi.DeleteFile(fileId);
+            foreach (ListViewItem lvi in listFiles.SelectedItems) {
+                string fileId = lvi.SubItems[5].Text;
 
-            listFiles.Items.Remove(lvi);
+                tsmDelete.Enabled = false;
+                await DriveApi.DeleteFile(fileId);
 
-            MessageBox.Show("Dosya silindi");
+                listFiles.Items.Remove(lvi);
+                c++;
+            }
+
+            lblSelectedCount.Text = "";
             tsmDelete.Enabled = true;
+
+            MessageBox.Show($"{c} adet dosya silindi");
+        }
+
+        private void listFiles_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e) {
+            if (listFiles.SelectedItems.Count == 0) {
+                lblSelectedCount.Text = "";
+            }
+            else {
+                lblSelectedCount.Text = $"{listFiles.SelectedItems.Count} dosya seçildi";
+            }
         }
 
         /// <summary>

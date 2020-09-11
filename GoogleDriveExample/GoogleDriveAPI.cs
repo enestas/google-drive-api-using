@@ -30,6 +30,8 @@ namespace GoogleDriveExample {
 
         private DriveService service;
 
+        public bool Running = false;
+
         public event Action<int, string> SetProgressValue = delegate { };
 
         private readonly string[] Scopes = new string[] { DriveService.Scope.Drive, DriveService.Scope.DriveFile, DriveService.Scope.DriveReadonly };
@@ -101,6 +103,7 @@ namespace GoogleDriveExample {
         public List<Google.Apis.Drive.v3.Data.File> GetFiles(string query = null) {
             List<Google.Apis.Drive.v3.Data.File> fileList = new List<Google.Apis.Drive.v3.Data.File>();
             FilesResource.ListRequest request = service.Files.List();
+            request.PageSize = 1;
             request.Q = query ?? "mimeType != \"application/vnd.google-apps.folder\"";
 
             // hangi alanların gelmesini istiyorsak burada belirtiyoruz
@@ -109,20 +112,48 @@ namespace GoogleDriveExample {
             //dosyalar parça parça geliyor, her parçada nextPageToken dönüyor, nextPageToken null gelene kadar bu döngü devam eder.
             // null dönerse tüm dosyalar çekilmiştir
             do {
-                try {
-                    FileList files = request.Execute();
+                FileList files = request.Execute();
 
-                    // her partta gelen dosyaları fileList listesine ekliyoruz
-                    fileList.AddRange(files.Files);
-                    request.PageToken = files.NextPageToken;
-                }
-                catch (Exception e) {
-                    Console.WriteLine("An error occurred: " + e.Message);
-                    request.PageToken = null;
-                }
+                // her partta gelen dosyaları fileList listesine ekliyoruz
+                fileList.AddRange(files.Files);
+                request.PageToken = files.NextPageToken;
+
             } while (!string.IsNullOrEmpty(request.PageToken));
 
             return fileList;
+        }
+
+        /// <summary>
+        /// drive'dan dosya çekme
+        /// </summary>
+        /// <param name="query">query varsa kullanır, yoksa klasörler hariç her dosyayı getirir</param>
+        /// <returns></returns>
+        public async IAsyncEnumerable<Google.Apis.Drive.v3.Data.File> GetFilesAsync(string query = null) {
+            Running = true;
+
+            FilesResource.ListRequest request = service.Files.List();
+            request.PageSize = 200;
+            request.Q = query ?? "mimeType != \"application/vnd.google-apps.folder\"";
+
+            // hangi alanların gelmesini istiyorsak burada belirtiyoruz
+            request.Fields = "nextPageToken, files(id, name, createdTime, modifiedTime, mimeType, description, size)";
+
+            //dosyalar parça parça geliyor, her parçada nextPageToken dönüyor, nextPageToken null gelene kadar bu döngü devam eder.
+            // null dönerse tüm dosyalar çekilmiştir
+            do {
+                FileList files = await request.ExecuteAsync();
+                foreach (var item in files.Files) {
+                    yield return item;
+                }
+
+                request.PageToken = files.NextPageToken;
+
+
+            } while (!string.IsNullOrEmpty(request.PageToken));
+
+            Running = false;
+
+            yield break;
         }
 
         /// <summary>
@@ -210,7 +241,7 @@ namespace GoogleDriveExample {
                         FilesResource.CreateMediaUpload request = service.Files.Create(body, stream, GetMimeType(file));
                         request.SupportsTeamDrives = true;
                         request.Fields = "id, name, createdTime, modifiedTime, mimeType, description, size";
-                      
+
                         request.ProgressChanged += (e) => {
                             if (e.BytesSent > 0) {
                                 int progress = (int)Math.Floor((decimal)((e.BytesSent * 100) / byteArray.Length));
@@ -274,7 +305,7 @@ namespace GoogleDriveExample {
         /// <param name="destinationParentID">taşınacağı klasör id</param>
         /// <returns></returns>
         public async Task<Google.Apis.Drive.v3.Data.File> Move(string fileId, string destinationParentID) {
-            var fileRequest =  service.Files.Get(fileId);
+            var fileRequest = service.Files.Get(fileId);
             fileRequest.Fields = "*";
             Google.Apis.Drive.v3.Data.File file = await fileRequest.ExecuteAsync();
 

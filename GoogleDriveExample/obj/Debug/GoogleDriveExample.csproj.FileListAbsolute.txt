@@ -17,7 +17,6 @@ D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\bin\Debug\Google.Api
 D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\bin\Debug\Google.Apis.Drive.v3.pdb
 D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\bin\Debug\Google.Apis.Drive.v3.xml
 D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\bin\Debug\Newtonsoft.Json.xml
-D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\obj\Debug\GoogleDriveExample.csprojAssemblyReference.cache
 D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\obj\Debug\GoogleDriveExample.Properties.Resources.resources
 D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\obj\Debug\GoogleDriveExample.csproj.GenerateResource.cache
 D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\obj\Debug\GoogleDriveExample.csproj.CoreCompileInputs.cache
@@ -25,3 +24,9 @@ D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\obj\Debug\GoogleDriv
 D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\obj\Debug\GoogleDriveExample.exe
 D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\obj\Debug\GoogleDriveExample.pdb
 D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\obj\Debug\GoogleDriveExample.MainForm.resources
+D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\bin\Debug\Microsoft.Bcl.AsyncInterfaces.dll
+D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\bin\Debug\System.Runtime.CompilerServices.Unsafe.dll
+D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\bin\Debug\System.Threading.Tasks.Extensions.dll
+D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\bin\Debug\Microsoft.Bcl.AsyncInterfaces.xml
+D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
+D:\Projeler\Makaleler\GoogleDriveExample\GoogleDriveExample\bin\Debug\System.Threading.Tasks.Extensions.xml
