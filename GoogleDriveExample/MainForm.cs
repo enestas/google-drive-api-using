@@ -92,8 +92,11 @@ namespace GoogleDriveExample {
             lblSelectedCount.Text = "";
 
             await foreach (var item in DriveApi.GetFilesAsync(query)) {
-                btnPrev.Enabled = !DriveApi.Running;
-                btnSearch.Enabled = btnPrev.Enabled;
+                if (Navigation.Count > 1) {
+                    btnPrev.Enabled = !DriveApi.Running;
+                }
+
+                btnSearch.Enabled = !DriveApi.Running;
                 long fileSize = item.Size ?? 0;
                 string[] row = { item.Name, (fileSize / 1024f).ToString("n0") + " KB", fileSize.ToString(), item.MimeType, item.CreatedTime.Value.ToString("G"), item.Id };
 
@@ -111,8 +114,10 @@ namespace GoogleDriveExample {
                 lblFileCount.Text = "Dosya sayısı: " + listFiles.Items.Count.ToString();
             }
 
-            btnPrev.Enabled = !DriveApi.Running;
-            btnSearch.Enabled = btnPrev.Enabled;
+            if (Navigation.Count > 1) {
+                btnPrev.Enabled = !DriveApi.Running;
+            }
+            btnSearch.Enabled = !DriveApi.Running;
             //FillListView(files);
         }
 
@@ -211,7 +216,10 @@ namespace GoogleDriveExample {
 
             // yeni aktif klasörümüz geri döndüğümüz klasör olur
             ActiveParentID = Navigation.Last();
-            txtNavigation.Text = txtNavigation.Text.Replace("/" + ActiveFolderName, "");
+            List<string> navText = txtNavigation.Text.Split('/').ToList();
+            navText.Remove(navText.Last());
+
+            txtNavigation.Text = string.Join("/", navText.ToArray());
             ActiveFolderName = txtNavigation.Text.Split('/').Last();
 
             GetList(query);
@@ -653,6 +661,39 @@ namespace GoogleDriveExample {
             if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
                 e.Effect = DragDropEffects.Copy;
             }
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
+            if (keyData == (Keys.Control | Keys.C)) {
+                tsmCopy.PerformClick();
+                return true;
+            }
+            else if (keyData == (Keys.Control | Keys.X)) {
+                tsmCut.PerformClick();
+                return true;
+            }
+            else if (keyData == (Keys.Control | Keys.V)) {
+                tsmPaste.PerformClick();
+                return true;
+            }
+            else if (keyData == (Keys.Delete)) {
+                tsmDelete.PerformClick();
+                return true;
+            }
+            else if (keyData == (Keys.Control | Keys.A)) {
+                listFiles.Items.Cast<ListViewItem>().ToList().ForEach(t => t.Selected = true);
+                return true;
+            }
+            else if (keyData == Keys.Back) {
+                btnPrev.PerformClick();
+                return true;
+            }
+            else if (keyData == (Keys.Control | Keys.Shift | Keys.N)) {
+                tsmNewFolder.PerformClick();
+                return true;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
         }
     }
 }
