@@ -234,9 +234,7 @@ namespace GoogleDriveExample {
                     body.Parents = new List<string> { folderId };
                 }
 
-                byte[] byteArray = System.IO.File.ReadAllBytes(file);
-
-                using (var stream = new MemoryStream(byteArray)) {
+                using (var stream = new System.IO.FileStream(file, FileMode.Open, FileAccess.Read)) {
                     try {
                         FilesResource.CreateMediaUpload request = service.Files.Create(body, stream, GetMimeType(file));
                         request.SupportsTeamDrives = true;
@@ -244,7 +242,7 @@ namespace GoogleDriveExample {
 
                         request.ProgressChanged += (e) => {
                             if (e.BytesSent > 0) {
-                                int progress = (int)Math.Floor((decimal)((e.BytesSent * 100) / byteArray.Length));
+                                int progress = (int)Math.Floor((decimal)((e.BytesSent * 100) / fileInfo.Length));
                                 SetProgressValue(progress, "yükleniyor...");
 
                             }
